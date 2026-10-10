@@ -1,5 +1,4 @@
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
 
 public class AccountProcessorTest {
@@ -64,4 +63,43 @@ void overdraftPartition() {
 
     assertEquals(25.0, result, 0.001);
 }
+
+    // ====================================
+    // ADDITIONAL BOUNDARY TESTS
+    // ====================================
+    @Test
+    void withdrawalJustUnderBalanceNoFee() {
+        double result = AccountProcessor.processBalance(100.0, 0.0, 99.99);
+        assertEquals(0.01, result, 0.001);
+    }
+
+    @Test
+    void withdrawalJustOverBalanceTriggersFee() {
+        double result = AccountProcessor.processBalance(100.0, 0.0, 100.01);
+        assertEquals(75.0, result, 0.001);
+    }
+
+    @Test
+    void overdraftLeavesExactlyZero() {
+        double result = AccountProcessor.processBalance(25.0, 0.0, 30.0);
+        assertEquals(0.0, result, 0.001);
+    }
+
+    @Test
+    void overdraftJustAboveZero() {
+        double result = AccountProcessor.processBalance(25.01, 0.0, 30.0);
+        assertEquals(0.01, result, 0.001);
+    }
+
+    @Test
+    void overdraftJustBelowZeroIsClamped() {
+        double result = AccountProcessor.processBalance(24.99, 0.0, 30.0);
+        assertEquals(0.0, result, 0.001);
+    }
+
+    @Test
+    void depositCountsTowardAvailableFunds() {
+        double result = AccountProcessor.processBalance(20.0, 100.0, 110.0);
+        assertEquals(10.0, result, 0.001);
+    }
 }
